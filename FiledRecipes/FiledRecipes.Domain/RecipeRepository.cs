@@ -123,9 +123,152 @@ namespace FiledRecipes.Domain
             // Event will be null if there are no subscribers. 
             if (handler != null)
             {
-                // Use the () operator to raise the event.
+                // Use the () operator to raise the event.vi 
                 handler(this, e);
             }
         }
+
+        public virtual void Load()
+        {
+            RecipeReadStatus recipeStatus = 0;
+            Recipe receptObject = null;
+
+            //dynamic array
+            List<string> readInRecipes = new List<string>();
+            List<IRecipe> addedRecipes = new List<IRecipe>();
+
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(_path))
+                {
+                    string line;
+
+                    // read all lines in file
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        readInRecipes.Add(line);
+
+                        // determine what next line should have as status
+                       if(line == "")
+                       {
+                           continue;
+                       }
+                       else if (line == "[Recept]")
+                        {
+                            recipeStatus = RecipeReadStatus.Indefinite;
+                        }
+
+                       else if (line == "[Ingredienser]")
+                       {
+                           recipeStatus = RecipeReadStatus.Ingredient;
+                       }
+                       
+                        else if (line == "[Instruktioner]")
+                       {
+                           recipeStatus = RecipeReadStatus.Instruction;
+                       }
+
+                        // determine what to do with different status.
+                       switch (recipeStatus)
+                       {
+                           // if it is the title
+                           case RecipeReadStatus.Indefinite:
+                               if(line != "[Recept]")
+                               {
+                                   if (receptObject != null)
+                                   {
+                                       addedRecipes.Add(receptObject);
+                                   }
+                                   receptObject = new Recipe(line);
+                               }
+                               break;
+
+                           // if it is the ingredients
+                           case RecipeReadStatus.Ingredient:
+                               	string[] ingredientSplit = line.Split(';');
+                               if(line != "[Ingredienser]")
+                               {
+                                   if (ingredientSplit.Length != 3)
+                                   {
+                                       throw new FileFormatException();
+                                   }
+                                       // skapa ingrediensobjekt, skicka in mängd, mått och namn
+                                       Ingredient ingredient = new Ingredient();
+                                       
+                                       ingredient.Amount = ingredientSplit[0];
+                                       ingredient.Measure = ingredientSplit[1];
+                                       ingredient.Name = ingredientSplit[2];
+                                   
+                                       // add the ingredient to the recipe-object
+                                       receptObject.Add(ingredient);  
+                               }
+                               break;
+
+                           // if it is the instructions
+                           case RecipeReadStatus.Instruction:
+                               if (line != "[Instruktioner]")
+                               {
+                                   // add the instruction to the recipe-object
+                                   receptObject.Add(line);
+                               }
+                               break;
+
+                           default:
+                               throw new FileFormatException();
+                       }
+                    }
+
+                    // We need to add the last recipe.
+                    if (receptObject != null)
+                    {
+                        addedRecipes.Add(receptObject);
+                    }
+
+                    IEnumerable<IRecipe> sortRecipes = addedRecipes.OrderBy(r => r.Name);
+                    
+                    //Add the sorted list to _recipes 
+                    _recipes = sortRecipes.ToList(); 
+                }
+                IsModified = false;
+                OnRecipesChanged(EventArgs.Empty);
+            }
+                
+            catch (Exception)
+            {
+                throw new FileNotFoundException();
+            }
+        }
+
+        public virtual void Save()
+        {
+            try
+            {
+                using (StreamWriter writeToFile = File.AppendText(_path))
+                {
+                    writeToFile.WriteLine(_recipes);
+                    //test to save recipe
+                    //writeToFile.WriteLine("[Recept]");
+                    //Console.Write("Receptets namn: ");
+                    //writeToFile.WriteLine(Console.ReadLine());
+                    //writeToFile.WriteLine("[Ingredienser]");
+                    //Console.Write("Ingredienser: ");
+                    //writeToFile.WriteLine(Console.ReadLine());
+                    //writeToFile.WriteLine("[Instruktioner]");
+                    //Console.Write("Instruktioner: ");
+                    //writeToFile.WriteLine(Console.ReadLine());
+                    IsModified = true;
+                    OnRecipesChanged(EventArgs.Empty);
+                }
+            }
+            catch (Exception)
+            {
+                throw new FileNotFoundException();
+            }
+            IsModified = false;
+            OnRecipesChanged(EventArgs.Empty);
+        }
+
     }
 }
+

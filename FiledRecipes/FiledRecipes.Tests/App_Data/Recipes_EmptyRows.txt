@@ -16,4 +16,4 @@ Blanda mjölk och grädde. Värm, utan att det kokar, till 90°. Om mjölken kok
 
 
 Låt stå under handduk eller smörpapper i 12-24 timmar tills filbunken "stannat".
-Servera med färska bär eller bara ingefära/kanel och lite socker.
+Servera med färska bär eller bara ingefära/kanel och lite socker.System.Collections.Generic.List`1[FiledRecipes.Domain.IRecipe]

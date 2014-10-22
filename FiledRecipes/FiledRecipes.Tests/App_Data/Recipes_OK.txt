@@ -68,3 +68,6 @@ Sätt ugnen på 225°. Lägg kasslern på ett ugnssäkert fat. Blanda den lätt 
 
 
 
+System.Collections.Generic.List`1[FiledRecipes.Domain.IRecipe]
+System.Collections.Generic.List`1[FiledRecipes.Domain.IRecipe]
+System.Collections.Generic.List`1[FiledRecipes.Domain.IRecipe]
